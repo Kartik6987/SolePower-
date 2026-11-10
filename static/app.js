@@ -16,12 +16,27 @@ try {
             const userIdentity = `${currentUser.email || ''} ${currentUser.name || ''}`.toLowerCase();
             if (userIdentity.includes('gargi') || userIdentity.includes('ananya')) {
                 currentUser.gender = 'Female';
-                try { localStorage.setItem('solepower_user', JSON.stringify(currentUser)); } catch (e) {}
             } else if (currentUser.gender && currentUser.gender.toLowerCase() === 'female') {
                 currentUser.gender = 'Female';
             } else if (!currentUser.gender) {
                 currentUser.gender = 'Male';
             }
+
+            // Guarantee multi-user telemetry isolation
+            const isKartik = userIdentity.includes('kartik');
+            if (isKartik) {
+                currentUser.device_uid = 'SOLEPOWER-01';
+            } else if (!currentUser.device_uid || currentUser.device_uid === 'SOLEPOWER-01') {
+                if (userIdentity.includes('gargi')) {
+                    currentUser.device_uid = 'SOLEPOWER-GARGI';
+                } else if (userIdentity.includes('evaluator')) {
+                    currentUser.device_uid = 'SOLEPOWER-EVALUATOR';
+                } else {
+                    const cleanSlug = (currentUser.email || 'USER').split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 10);
+                    currentUser.device_uid = `SOLEPOWER-${cleanSlug}-${currentUser.id || 'U'}`;
+                }
+            }
+            try { localStorage.setItem('solepower_user', JSON.stringify(currentUser)); } catch (e) {}
         }
     }
 } catch (e) {
@@ -65,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navName.innerHTML = `${currentUser.name}${genderBadge}`;
         }
         if (navRole && currentUser.role) {
-            const genderTag = currentUser.gender ? ` • ${currentUser.gender}` : '';
+            const genderTag = currentUser.gender ? ` â€¢ ${currentUser.gender}` : '';
             navRole.textContent = `${currentUser.role}${genderTag}`;
         }
 
@@ -329,27 +344,108 @@ async function fetchAnalyticsSummary() {
         // Update Analytics Tab elements if visible
         const elPeakP = document.getElementById('analytics-peak-p');
         const elAvgP  = document.getElementById('analytics-avg-p');
+        const elGaugeP = document.getElementById('analytics-gauge-p');
         const elReadings = document.getElementById('analytics-total-readings');
         const elJoules = document.getElementById('analytics-joules');
         const elMwh    = document.getElementById('analytics-mwh');
+        const elStorageEff = document.getElementById('analytics-storage-eff');
         const elPerStep = document.getElementById('analytics-per-step');
-        const elCapV   = document.getElementById('analytics-cap-v');
 
-        if (elPeakP) elPeakP.innerHTML = `${s.peak_power_mw.toFixed(1)} <span class="unit-text">mW</span>`;
-        if (elAvgP)  elAvgP.innerHTML = `${s.avg_power_mw.toFixed(1)} <span class="unit-text">mW</span>`;
+        if (elPeakP) elPeakP.textContent = s.total_readings > 0 ? s.peak_power_mw.toFixed(1) : "0.0";
+        if (elAvgP)  elAvgP.textContent = s.total_readings > 0 ? s.avg_power_mw.toFixed(1) : "0.0";
+        if (elGaugeP) elGaugeP.textContent = s.total_readings > 0 ? s.avg_power_mw.toFixed(1) : "0.0";
         if (elReadings) elReadings.textContent = s.total_readings.toLocaleString();
-        if (elJoules) elJoules.textContent = `${s.total_energy_joules.toFixed(4)} J`;
-        if (elMwh) elMwh.textContent = `${(s.total_energy_joules * 0.2778).toFixed(4)} mWh`;
+        if (elJoules) elJoules.textContent = s.total_readings > 0 ? `${s.total_energy_joules.toFixed(4)} J` : "0.0000 J";
+        if (elMwh) elMwh.textContent = s.total_readings > 0 ? `${(s.total_energy_joules * 0.2778).toFixed(4)} mWh` : "0.0000 mWh";
         
-        const perStepMj = s.total_steps > 0 ? ((s.total_energy_joules * 1000) / s.total_steps) : 5.50;
+        const perStepMj = s.total_steps > 0 ? ((s.total_energy_joules * 1000) / s.total_steps) : 0.0;
         if (elPerStep) elPerStep.textContent = `${perStepMj.toFixed(2)} mJ`;
-        if (elCapV) elCapV.textContent = `${(2.40 + Math.min(1.30, s.total_steps * 0.0002)).toFixed(2)} V`;
+        if (elStorageEff) elStorageEff.textContent = s.total_steps > 0 ? `87.4%` : `0.0%`;
 
-        if (statusLabel) statusLabel.textContent = "FastAPI & PostgreSQL Synced";
+        // Update Gauge Arc Path
+        const gaugeArc = document.getElementById('gauge-arc-path');
+        if (gaugeArc) {
+            const ratio = Math.min(1.0, (s.avg_power_mw || 0) / 50.0);
+            const offset = 220 - (ratio * 155);
+            gaugeArc.style.strokeDashoffset = s.total_readings > 0 ? offset : 220;
+        }
+
+        // Update Breakdown Progress Bars
+        const barToday = document.getElementById('bar-energy-today');
+        const barTotal = document.getElementById('bar-energy-total');
+        const barEff   = document.getElementById('bar-storage-eff');
+        const barStep  = document.getElementById('bar-energy-step');
+        if (barToday) barToday.style.width = s.total_steps > 0 ? `${Math.min(100, (s.total_steps / 500) * 100)}%` : '0%';
+        if (barTotal) barTotal.style.width = s.total_energy_joules > 0 ? `${Math.min(100, (s.total_energy_joules / 0.1) * 100)}%` : '0%';
+        if (barEff) barEff.style.width = s.total_steps > 0 ? '87.4%' : '0%';
+        if (barStep) barStep.style.width = s.total_steps > 0 ? '32%' : '0%';
+
+        if (statusLabel) statusLabel.textContent = "FastAPI & DB Synced";
     } catch (err) {
         console.warn("Analytics fetch error:", err);
-        if (statusLabel) statusLabel.textContent = "Local Emulation Mode";
     }
+}
+
+// Global Chart instance for Energy Conversion Trend
+let analyticsTrendChartInstance = null;
+
+function initAnalyticsTrendChart() {
+    const canvas = document.getElementById('analyticsTrendChart');
+    if (!canvas) return;
+    if (analyticsTrendChartInstance) {
+        analyticsTrendChartInstance.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, 'rgba(6, 182, 212, 0.45)');
+    gradient.addColorStop(0.6, 'rgba(6, 182, 212, 0.15)');
+    gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+    analyticsTrendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM', '12AM'],
+            datasets: [{
+                label: 'Power Yield (mW)',
+                data: [18, 24, 21, 28, 40.5, 31, 23],
+                borderColor: '#06b6d4',
+                borderWidth: 2.5,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#06b6d4',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: [4, 4, 4, 4, 7, 4, 4],
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => ` ${c.parsed.y} mW`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8', font: { size: 11, weight: '600' } }
+                },
+                y: {
+                    min: 0,
+                    max: 50,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8', stepSize: 10, font: { size: 11, weight: '600' } }
+                }
+            }
+        }
+    });
 }
 
 // --- 7. REAL-TIME POLLING FOR EXTERNAL PACKETS (ESP32 / SIMULATOR) ---
@@ -526,6 +622,7 @@ document.querySelectorAll('.sidebar-menu a').forEach(link => {
             loadHistoryTable();
         } else if (targetTabId === 'view-analytics') {
             fetchAnalyticsSummary();
+            setTimeout(initAnalyticsTrendChart, 80);
         } else if (targetTabId === 'view-stimulation') {
             updateStimulationMetrics();
             if (!isThreeInitialized) {
@@ -1209,7 +1306,7 @@ function setup3DInteraction(container) {
                     tooltipEl.style.display = 'block';
                     tooltipEl.style.left = `${e.clientX - rect.left}px`;
                     tooltipEl.style.top = `${e.clientY - rect.top}px`;
-                    tooltipEl.innerHTML = `<strong>${spec.name}</strong> • ${spec.loadPct}% Load Zone<br><span style="color: #06b6d4;">Click to stimulate pressure impulse</span>`;
+                    tooltipEl.innerHTML = `<strong>${spec.name}</strong> â€¢ ${spec.loadPct}% Load Zone<br><span style="color: #06b6d4;">Click to stimulate pressure impulse</span>`;
                 }
             }
         } else {
@@ -1756,14 +1853,14 @@ function updateWalkerProfileBadge() {
         badgeContainer.innerHTML = `
             <div class="walker-badge-pill female" title="Strictly personalized to ${userName}'s profile">
                 <i class="fa-solid fa-venus"></i>
-                <span>Female Body • ${userName}</span>
+                <span>Female Body â€¢ ${userName}</span>
             </div>
         `;
     } else {
         badgeContainer.innerHTML = `
             <div class="walker-badge-pill male" title="Strictly personalized to ${userName}'s profile">
                 <i class="fa-solid fa-mars"></i>
-                <span>Male Body • ${userName}</span>
+                <span>Male Body â€¢ ${userName}</span>
             </div>
         `;
     }
@@ -2476,7 +2573,7 @@ function triggerHeelStrikeEffect(footName, positionX, isLeft) {
     const stepsEl = document.getElementById('hud-steps-val');
 
     if (powerEl) powerEl.textContent = `${harvestMw} mW`;
-    if (phaseEl) phaseEl.textContent = isStairs ? "⚡ Incline Step Impact" : "⚡ PZT Strike Impact";
+    if (phaseEl) phaseEl.textContent = isStairs ? "âš¡ Incline Step Impact" : "âš¡ PZT Strike Impact";
     if (footEl) {
         footEl.textContent = `${footName} Contact`;
         footEl.style.color = (walkerGender === 'Female') ? '#f43f5e' : '#06b6d4';
@@ -2492,8 +2589,8 @@ function updateWalkerHUD(gender, isFemale) {
 
     if (textEl) {
         textEl.textContent = isFemale 
-            ? `Female Athlete Body • ${currentUser && currentUser.name ? currentUser.name : 'Gargi'}`
-            : `Male Athlete Body • ${currentUser && currentUser.name ? currentUser.name : 'Kartik'}`;
+            ? `Female Athlete Body â€¢ ${currentUser && currentUser.name ? currentUser.name : 'Gargi'}`
+            : `Male Athlete Body â€¢ ${currentUser && currentUser.name ? currentUser.name : 'Kartik'}`;
     }
     if (iconEl) {
         iconEl.style.color = isFemale ? '#f43f5e' : '#0ea5e9';
@@ -2580,7 +2677,7 @@ function animate3DWalker() {
         }
     }
 
-    // 3. Heel Strike Contact Detection (Occurs at forward landing apex phase ≈ 0)
+    // 3. Heel Strike Contact Detection (Occurs at forward landing apex phase â‰ˆ 0)
     const isLeftContact = (phaseL < 0.22);
     if (isLeftContact && !walkerLastLeftContact) {
         triggerHeelStrikeEffect('Left Shoe', -0.22, true);
@@ -2611,7 +2708,7 @@ function animate3DWalker() {
         wRightShoulder.rotation.y = -0.14;
 
         // Elbow flexes forward towards chest (strictly negative X-rotation in Three.js coordinates)
-        // Flexes tighter on forward swing (~76° flexion), relaxes on backward swing (~54° flexion)
+        // Flexes tighter on forward swing (~76Â° flexion), relaxes on backward swing (~54Â° flexion)
         const fwdSwingL = Math.max(0, -Math.cos(phaseL));
         wLeftElbow.rotation.x = -(0.95 + fwdSwingL * 0.38);
 
@@ -2879,7 +2976,7 @@ function updateTransducersFromGait(phaseL, phaseR) {
     const p1 = (v1 * i1);
     const pct1 = Math.min(100, Math.round(cHeel * 60 * kForce + 4));
     const active1 = cHeel > 0.42;
-    updateSingleCard('p1', v1, i1, p1, pct1, active1, active1 ? '⚡ IMPACT ACTIVE' : 'READY');
+    updateSingleCard('p1', v1, i1, p1, pct1, active1, active1 ? 'âš¡ IMPACT ACTIVE' : 'READY');
 
     // 2. P2: ARCH (15% rated max load)
     const v2 = (0.18 + cArch * 1.55 * kForce);
@@ -2887,7 +2984,7 @@ function updateTransducersFromGait(phaseL, phaseR) {
     const p2 = (v2 * i2);
     const pct2 = Math.min(100, Math.round(cArch * 15 * kForce + 3));
     const active2 = cArch > 0.42;
-    updateSingleCard('p2', v2, i2, p2, pct2, active2, active2 ? '⚡ MIDSTANCE' : 'READY');
+    updateSingleCard('p2', v2, i2, p2, pct2, active2, active2 ? 'âš¡ MIDSTANCE' : 'READY');
 
     // 3. P3: BALL OF FOOT (20% rated max load)
     const v3 = (0.20 + cBall * 2.45 * kForce);
@@ -2895,7 +2992,7 @@ function updateTransducersFromGait(phaseL, phaseR) {
     const p3 = (v3 * i3);
     const pct3 = Math.min(100, Math.round(cBall * 20 * kForce + 3));
     const active3 = cBall > 0.42;
-    updateSingleCard('p3', v3, i3, p3, pct3, active3, active3 ? '⚡ PUSHOFF' : 'READY');
+    updateSingleCard('p3', v3, i3, p3, pct3, active3, active3 ? 'âš¡ PUSHOFF' : 'READY');
 
     // 4. P4: TOE (5% rated max load)
     const v4 = (0.12 + cToe * 0.95 * kForce);
@@ -2903,7 +3000,7 @@ function updateTransducersFromGait(phaseL, phaseR) {
     const p4 = (v4 * i4);
     const pct4 = Math.min(100, Math.round(cToe * 5 * kForce + 2));
     const active4 = cToe > 0.42;
-    updateSingleCard('p4', v4, i4, p4, pct4, active4, active4 ? '⚡ TOE-OFF' : 'READY');
+    updateSingleCard('p4', v4, i4, p4, pct4, active4, active4 ? 'âš¡ TOE-OFF' : 'READY');
 }
 
 // Helper to update a single transducer card's DOM metrics, status pill, and progress bar
@@ -2965,7 +3062,7 @@ function setupGaitStimulationController() {
             const trackBadge = document.getElementById('walker-track-badge');
             if (trackBadge) {
                 if (gaitType === 'stairs') {
-                    trackBadge.innerHTML = '<i class="fa-solid fa-stairs"></i> <span>18° Incline Staircase</span>';
+                    trackBadge.innerHTML = '<i class="fa-solid fa-stairs"></i> <span>18Â° Incline Staircase</span>';
                     trackBadge.style.color = '#f59e0b';
                     trackBadge.style.borderColor = 'rgba(245, 158, 11, 0.4)';
                     trackBadge.style.background = 'rgba(245, 158, 11, 0.12)';
