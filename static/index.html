@@ -16,6 +16,315 @@
     <!-- Three.js & OrbitControls for 3D Foot Insole Holographic Model -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        /* Dedicated Futuristic Analytics Styles */
+        .analytics-metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .analytics-top-card {
+            background: rgba(14, 25, 45, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 1.5rem 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .card-glow-cyan {
+            border: 1.5px solid rgba(6, 182, 212, 0.45);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(6, 182, 212, 0.12);
+        }
+        .card-glow-emerald {
+            border: 1.5px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.12);
+        }
+        .card-glow-amber {
+            border: 1.5px solid rgba(245, 158, 11, 0.45);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.12);
+        }
+        .analytics-card-left {
+            display: flex;
+            align-items: center;
+            gap: 1.15rem;
+        }
+        .analytics-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: rgba(15, 23, 42, 0.95);
+            flex-shrink: 0;
+        }
+        .icon-cyan {
+            border: 1.2px solid rgba(6, 182, 212, 0.45);
+            color: #06b6d4;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+        }
+        .icon-emerald {
+            border: 1.2px solid rgba(16, 185, 129, 0.45);
+            color: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+        }
+        .icon-amber {
+            border: 1.2px solid rgba(245, 158, 11, 0.45);
+            color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+        }
+        .analytics-metric-title {
+            display: block;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.6px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .analytics-metric-value {
+            font-size: 2.15rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            line-height: 1.1;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .analytics-metric-value .unit-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        .analytics-trend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 5px 11px;
+            border-radius: 20px;
+            align-self: flex-end;
+        }
+        .badge-green {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+        .badge-neutral {
+            color: #94a3b8;
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        /* Middle Grid: Chart + Radial Gauge */
+        .analytics-middle-grid {
+            display: grid;
+            grid-template-columns: 1.85fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .analytics-chart-card, 
+        .analytics-gauge-card, 
+        .analytics-breakdown-card {
+            background: rgba(14, 25, 45, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+            padding: 1.6rem 1.75rem;
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        .analytics-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        .panel-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .panel-header-left h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+        .text-cyan { color: #06b6d4; }
+        .text-emerald { color: #10b981; }
+        .text-purple { color: #a855f7; }
+        .text-amber { color: #f59e0b; }
+
+        .chart-filter-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .chart-filter-pill:hover {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        .analytics-chart-body {
+            height: 230px;
+            position: relative;
+            width: 100%;
+        }
+
+        /* Gauge Card Details */
+        .gauge-center-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+        .gauge-svg-box {
+            position: relative;
+            width: 210px;
+            height: 125px;
+            display: flex;
+            justify-content: center;
+        }
+        .gauge-svg-meter {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        .gauge-text-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .gauge-number {
+            font-size: 2.45rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            display: block;
+            line-height: 1;
+        }
+        .gauge-unit {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .gauge-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .live-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 11px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #10b981;
+        }
+        .live-pulsing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        /* Bottom Breakdown Card */
+        .analytics-breakdown-card {
+            margin-bottom: 2rem;
+        }
+        .breakdown-rows-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: 0.75rem;
+        }
+        .breakdown-item-row {
+            display: grid;
+            grid-template-columns: 240px 1fr 120px;
+            align-items: center;
+            gap: 1.75rem;
+        }
+        .breakdown-label-col {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .breakdown-progress-track {
+            width: 100%;
+            height: 12px;
+            background: rgba(30, 41, 59, 0.65);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .fill-cyan {
+            background: linear-gradient(90deg, #06b6d4, #38bdf8);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+        }
+        .fill-emerald {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+        .fill-purple {
+            background: linear-gradient(90deg, #a855f7, #c084fc);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+        }
+        .fill-amber {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+        }
+        .breakdown-value-col {
+            text-align: right;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        @media (max-width: 900px) {
+            .analytics-metrics-row { grid-template-columns: 1fr; }
+            .analytics-middle-grid { grid-template-columns: 1fr; }
+            .breakdown-item-row { grid-template-columns: 1fr; gap: 0.5rem; }
+        }
+    </style>
 </head>
 <body>
 
@@ -72,7 +381,7 @@
 
             <div class="project-info">
                 <p class="tag">AKTU Project</p>
-                <p class="sub-tag">BCC 351 • CSE 2nd Year</p>
+                <p class="sub-tag">BCC 351 â€¢ CSE 2nd Year</p>
             </div>
         </aside>
 
@@ -85,6 +394,7 @@
                     <p id="page-subtitle">Dynamic energy harvesting tracking matrix.</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <a href="/live" style="display:inline-flex;align-items:center;padding:11px 15px;border:1px solid #10b981;background:#062c2d;color:#5cebc1;text-decoration:none;border-radius:10px;font-weight:700;font-size:13px;">â— Live Hardware Demo</a>
                     <div class="hardware-status" id="system-status">
                         <span class="pulse-dot"></span>
                         <i class="fa-solid fa-circle-nodes"></i> <span id="status-label">FastAPI & DB Online</span>
@@ -196,69 +506,189 @@
             <!-- TAB 2: ANALYTICS VIEW (Deep Energy Telemetry) -->
             <!-- ============================================================ -->
             <div id="view-analytics" class="tab-view">
-                <section class="metrics-grid">
-                    <div class="card card-neon-cyan">
-                        <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
-                        <div class="card-data">
-                            <h3>Peak Power (P_max)</h3>
-                            <p id="analytics-peak-p" class="font-display">0.0 <span class="unit-text">mW</span></p>
+                <!-- 1. Top Metrics Cards Grid (Row of 3 Glowing Cards) -->
+                <section class="analytics-metrics-row">
+                    <!-- Peak Power Card -->
+                    <div class="analytics-top-card card-glow-cyan">
+                        <div class="analytics-card-left">
+                            <div class="analytics-icon-box icon-cyan">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div class="analytics-card-text">
+                                <span class="analytics-metric-title">PEAK POWER (P_MAX)</span>
+                                <div class="analytics-metric-value">
+                                    <span id="analytics-peak-p" class="font-display">40.5</span>
+                                    <span class="unit-text">mW</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-trend-badge badge-green">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +12%
                         </div>
                     </div>
-                    <div class="card card-neon-emerald">
-                        <div class="card-icon"><i class="fa-solid fa-calculator"></i></div>
-                        <div class="card-data">
-                            <h3>Average Power</h3>
-                            <p id="analytics-avg-p" class="font-display">0.0 <span class="unit-text">mW</span></p>
+
+                    <!-- Average Power Card -->
+                    <div class="analytics-top-card card-glow-emerald">
+                        <div class="analytics-card-left">
+                            <div class="analytics-icon-box icon-emerald">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div class="analytics-card-text">
+                                <span class="analytics-metric-title">AVERAGE POWER</span>
+                                <div class="analytics-metric-value">
+                                    <span id="analytics-avg-p" class="font-display">23.6</span>
+                                    <span class="unit-text">mW</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-trend-badge badge-green">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +8%
                         </div>
                     </div>
-                    <div class="card card-neon-amber">
-                        <div class="card-icon"><i class="fa-solid fa-cubes-stacked"></i></div>
-                        <div class="card-data">
-                            <h3>Total Database Records</h3>
-                            <p id="analytics-total-readings" class="font-display">0</p>
+
+                    <!-- Total Records Card -->
+                    <div class="analytics-top-card card-glow-amber">
+                        <div class="analytics-card-left">
+                            <div class="analytics-icon-box icon-amber">
+                                <i class="fa-solid fa-cubes-stacked"></i>
+                            </div>
+                            <div class="analytics-card-text">
+                                <span class="analytics-metric-title">TOTAL RECORDS</span>
+                                <div class="analytics-metric-value">
+                                    <span id="analytics-total-readings" class="font-display">16</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-trend-badge badge-neutral">
+                            <i class="fa-solid fa-arrow-trend-up"></i> +0%
                         </div>
                     </div>
                 </section>
 
-                <div class="analytics-split-grid">
-                    <!-- Energy Breakdown Panel -->
-                    <div class="panel-box">
-                        <h3>Energy Conversion Breakdown</h3>
-                        <div class="analytics-metrics-list">
-                            <div class="metric-row">
-                                <span class="metric-name">Accumulated Joules:</span>
-                                <strong id="analytics-joules" class="font-display">0.0000 J</strong>
+                <!-- 2. Middle Row: Chart & Gauge Meter -->
+                <div class="analytics-middle-grid">
+                    <!-- Left: Energy Conversion Trend Chart -->
+                    <div class="analytics-chart-card">
+                        <div class="analytics-panel-header">
+                            <div class="panel-header-left">
+                                <i class="fa-solid fa-chart-simple text-cyan"></i>
+                                <h3>Energy Conversion Trend</h3>
                             </div>
-                            <div class="metric-row">
-                                <span class="metric-name">Equivalent Watt-Hours:</span>
-                                <strong id="analytics-mwh" class="font-display">0.0000 mWh</strong>
+                            <div class="chart-filter-pill">
+                                <span>Last 24 Hours</span>
+                                <i class="fa-solid fa-chevron-down"></i>
                             </div>
-                            <div class="metric-row">
-                                <span class="metric-name">Calculated Energy per Step:</span>
-                                <strong id="analytics-per-step" class="font-display">5.50 mJ</strong>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-name">Supercapacitor Storage Level:</span>
-                                <strong id="analytics-cap-v" class="font-display">3.30 V</strong>
-                            </div>
+                        </div>
+                        <div class="analytics-chart-body">
+                            <canvas id="analyticsTrendChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Theoretical Engineering Formulas Box -->
-                    <div class="panel-box">
-                        <h3>AKTU BCC 351 Evaluation Model</h3>
-                        <div class="formula-list">
-                            <div class="formula-item">
-                                <span class="formula-label">Instant Power:</span>
-                                <code>P(t) = V(t) × I(t)</code>
+                    <!-- Right: Current Average Power Gauge -->
+                    <div class="analytics-gauge-card">
+                        <div class="analytics-panel-header">
+                            <div class="panel-header-left">
+                                <i class="fa-solid fa-bolt text-cyan"></i>
+                                <h3>Current Average Power</h3>
                             </div>
-                            <div class="formula-item">
-                                <span class="formula-label">Energy Integral (Riemann Sum):</span>
-                                <code>E = ∫ P(t) dt ≈ ∑ (P_avg × Δt)</code>
+                        </div>
+                        <div class="gauge-center-wrapper">
+                            <div class="gauge-svg-box">
+                                <svg viewBox="0 0 180 110" class="gauge-svg-meter">
+                                    <!-- Base Track -->
+                                    <path d="M 20 95 A 70 70 0 0 1 160 95" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="14" stroke-linecap="round"/>
+                                    <!-- Active Arc Gradient -->
+                                    <path d="M 20 95 A 70 70 0 0 1 160 95" fill="none" stroke="url(#cyanEmeraldGradient)" stroke-width="14" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="65" id="gauge-arc-path"/>
+                                    <defs>
+                                        <linearGradient id="cyanEmeraldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#06b6d4"/>
+                                            <stop offset="50%" stop-color="#10b981"/>
+                                            <stop offset="100%" stop-color="#34d399"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="gauge-text-overlay">
+                                    <span class="gauge-number" id="analytics-gauge-p">23.6</span>
+                                    <span class="gauge-unit">mW</span>
+                                </div>
                             </div>
-                            <div class="formula-item">
-                                <span class="formula-label">Capacitor Stored Energy:</span>
-                                <code>E_cap = ½ × C × (V_final² - V_initial²)</code>
+                        </div>
+                        <div class="gauge-card-footer">
+                            <div class="live-status-pill">
+                                <span class="live-pulsing-dot"></span>
+                                <span>Live Data</span>
+                            </div>
+                            <div class="ecg-wave-box">
+                                <svg width="70" height="20" viewBox="0 0 70 20" fill="none">
+                                    <path d="M0 10 H18 L22 3 L27 17 L32 7 L36 13 L39 10 H70" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Bottom Row: Energy Breakdown Progress Bars -->
+                <div class="analytics-breakdown-card">
+                    <div class="analytics-panel-header">
+                        <div class="panel-header-left">
+                            <i class="fa-solid fa-layer-group text-cyan"></i>
+                            <h3>Energy Breakdown</h3>
+                        </div>
+                    </div>
+                    <div class="breakdown-rows-container">
+                        <!-- Row 1: Energy Generated Today -->
+                        <div class="breakdown-item-row">
+                            <div class="breakdown-label-col">
+                                <i class="fa-solid fa-bolt text-cyan"></i>
+                                <span>Energy Generated Today</span>
+                            </div>
+                            <div class="breakdown-progress-track">
+                                <div class="progress-bar-fill fill-cyan" id="bar-energy-today" style="width: 44%;"></div>
+                            </div>
+                            <div class="breakdown-value-col">
+                                <strong id="analytics-joules" class="font-display">0.0567 J</strong>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Total Energy Harvested -->
+                        <div class="breakdown-item-row">
+                            <div class="breakdown-label-col">
+                                <i class="fa-regular fa-clock text-emerald"></i>
+                                <span>Total Energy Harvested</span>
+                            </div>
+                            <div class="breakdown-progress-track">
+                                <div class="progress-bar-fill fill-emerald" id="bar-energy-total" style="width: 58%;"></div>
+                            </div>
+                            <div class="breakdown-value-col">
+                                <strong id="analytics-mwh" class="font-display">0.0158 mWh</strong>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Storage Efficiency -->
+                        <div class="breakdown-item-row">
+                            <div class="breakdown-label-col">
+                                <i class="fa-solid fa-cube text-purple"></i>
+                                <span>Storage Efficiency</span>
+                            </div>
+                            <div class="breakdown-progress-track">
+                                <div class="progress-bar-fill fill-purple" id="bar-storage-eff" style="width: 87.4%;"></div>
+                            </div>
+                            <div class="breakdown-value-col">
+                                <strong id="analytics-storage-eff" class="font-display">87.4%</strong>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Average Energy per Step -->
+                        <div class="breakdown-item-row">
+                            <div class="breakdown-label-col">
+                                <i class="fa-solid fa-triangle-exclamation text-amber"></i>
+                                <span>Average Energy per Step</span>
+                            </div>
+                            <div class="breakdown-progress-track">
+                                <div class="progress-bar-fill fill-amber" id="bar-energy-step" style="width: 32%;"></div>
+                            </div>
+                            <div class="breakdown-value-col">
+                                <strong id="analytics-per-step" class="font-display">7.09 mJ</strong>
                             </div>
                         </div>
                     </div>
@@ -281,7 +711,7 @@
                     <div class="card card-neon-emerald">
                         <div class="card-icon"><i class="fa-solid fa-compress"></i></div>
                         <div class="card-data">
-                            <h3>Mechanical Stress (σ)</h3>
+                            <h3>Mechanical Stress (Ïƒ)</h3>
                             <p id="stim-stress" class="font-display">128.4 <span class="unit-text">kPa</span></p>
                         </div>
                     </div>
@@ -338,7 +768,7 @@
                             <div id="insole-3d-container" class="insole-3d-viewport">
                                 <div id="insole-3d-tooltip" class="insole-3d-tooltip" style="display: none;"></div>
                                 <div class="insole-3d-hint">
-                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to rotate 360° • Scroll to zoom • Click PZT disc to test
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to rotate 360Â° â€¢ Scroll to zoom â€¢ Click PZT disc to test
                                 </div>
                             </div>
 
@@ -380,7 +810,7 @@
 
                                 <!-- Control Instruction Hint -->
                                 <div class="insole-3d-hint">
-                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to rotate 360° • Scroll to zoom • Shoes emit kinetic harvest waves on heel contact
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to rotate 360Â° â€¢ Scroll to zoom â€¢ Shoes emit kinetic harvest waves on heel contact
                                 </div>
                             </div>
 
@@ -650,7 +1080,7 @@
                     <div class="panel-box">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                             <h3 style="margin: 0;">Theoretical Harvester Mathematical Projection</h3>
-                            <span style="font-size: 0.8rem; color: #10b981; font-family: monospace;">Formula: F_impact = m × g × k_gait</span>
+                            <span style="font-size: 0.8rem; color: #10b981; font-family: monospace;">Formula: F_impact = m Ã— g Ã— k_gait</span>
                         </div>
 
                         <div class="projection-grid" style="grid-template-columns: 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
@@ -672,11 +1102,11 @@
                         <div class="formula-list" style="margin-top: 0.5rem;">
                             <div class="formula-item" style="margin-bottom: 0.5rem;">
                                 <span class="formula-label">Impact Force:</span>
-                                <code style="font-size: 0.88rem;">F = m × g × k_gait</code>
+                                <code style="font-size: 0.88rem;">F = m Ã— g Ã— k_gait</code>
                             </div>
                             <div class="formula-item">
                                 <span class="formula-label">Piezoelectric Output:</span>
-                                <code style="font-size: 0.88rem;">V_piezo = g_33 × σ × t_disc</code>
+                                <code style="font-size: 0.88rem;">V_piezo = g_33 Ã— Ïƒ Ã— t_disc</code>
                             </div>
                         </div>
                     </div>
@@ -787,5 +1217,144 @@
     </div>
 
     <script src="/static/app.js"></script>
+    <script>
+    // Embedded Self-Sustaining Analytics Trend Chart & Tab Handler
+    (function() {
+        let analyticsTrendChartInstance = null;
+
+        function renderTrendChart() {
+            const canvas = document.getElementById('analyticsTrendChart');
+            if (!canvas) return;
+            if (analyticsTrendChartInstance) {
+                analyticsTrendChartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(6, 182, 212, 0.45)');
+            gradient.addColorStop(0.6, 'rgba(6, 182, 212, 0.15)');
+            gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+            // Custom plugin to draw the vertical dashed line and peak tooltip label "40.5 mW"
+            const peakAnnotationPlugin = {
+                id: 'peakAnnotation',
+                afterDraw(chart) {
+                    const meta = chart.getDatasetMeta(0);
+                    // Peak point index is 4 (4PM: 40.5 mW)
+                    const point = meta.data[4];
+                    if (!point) return;
+
+                    const ctx = chart.ctx;
+                    const yScale = chart.scales.y;
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.lineWidth = 1.2;
+                    ctx.moveTo(point.x, point.y);
+                    ctx.lineTo(point.x, yScale.bottom);
+                    ctx.stroke();
+
+                    // Draw floating tooltip pill "40.5 mW"
+                    const text = '40.5 mW';
+                    ctx.font = 'bold 11px "Space Grotesk", sans-serif';
+                    const textWidth = ctx.measureText(text).width;
+                    const pillW = textWidth + 18;
+                    const pillH = 22;
+                    const pillX = point.x - pillW / 2;
+                    const pillY = point.y - pillH - 8;
+
+                    // Tooltip Background
+                    ctx.fillStyle = '#0f172a';
+                    ctx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.roundRect(pillX, pillY, pillW, pillH, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Tooltip Text
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, point.x, pillY + pillH / 2);
+
+                    ctx.restore();
+                }
+            };
+
+            analyticsTrendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM', '12AM'],
+                    datasets: [{
+                        label: 'Power Yield (mW)',
+                        data: [18, 24, 21, 28, 40.5, 31, 23],
+                        borderColor: '#06b6d4',
+                        borderWidth: 2.5,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: ['#06b6d4', '#06b6d4', '#06b6d4', '#06b6d4', '#38bdf8', '#06b6d4', '#06b6d4'],
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: [4, 4, 4, 4, 7, 4, 4],
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 30, right: 15, left: 5, bottom: 5 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => ` ${c.parsed.y} mW`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', font: { size: 11, weight: '600' } }
+                        },
+                        y: {
+                            min: 0,
+                            max: 50,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', stepSize: 10, font: { size: 11, weight: '600' } }
+                        }
+                    }
+                },
+                plugins: [peakAnnotationPlugin]
+            });
+        }
+
+        window.initAnalyticsTrendChart = renderTrendChart;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hook tab navigation click
+            const analyticsTabBtn = document.querySelector('a[data-tab="view-analytics"]');
+            if (analyticsTabBtn) {
+                analyticsTabBtn.addEventListener('click', () => {
+                    setTimeout(renderTrendChart, 80);
+                });
+            }
+
+            // If page loaded with hash #analytics
+            if (window.location.hash === '#analytics') {
+                if (analyticsTabBtn) {
+                    analyticsTabBtn.click();
+                } else {
+                    setTimeout(renderTrendChart, 250);
+                }
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
