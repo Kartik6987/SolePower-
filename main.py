@@ -33,6 +33,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timedelta
+import re
 
 from database import engine, Base, get_db, SessionLocal
 import models
@@ -69,6 +70,48 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+def get_or_assign_user_device_uid(user: models.User, db: Session) -> str:
+    """
+    Guarantees strict multi-user telemetry isolation.
+    - Kartik (Hardware Lead & ESP32 Dev): assigned 'SOLEPOWER-01' (matches physical shoe firmware)
+    - Gargi (Co-Researcher): assigned 'SOLEPOWER-GARGI'
+    - Evaluator: assigned 'SOLEPOWER-EVALUATOR'
+    - All other users / Google accounts: unique deterministic 'SOLEPOWER-{SLUG}-{ID}'
+    """
+    clean_email = (user.email or "").strip().lower()
+    clean_name = (user.name or "").strip().lower()
+
+    if "kartik" in clean_email or "kartik" in clean_name:
+        if user.device_uid != "SOLEPOWER-01":
+            user.device_uid = "SOLEPOWER-01"
+            db.commit()
+            db.refresh(user)
+        return "SOLEPOWER-01"
+
+    if "gargi" in clean_email or "gargi" in clean_name:
+        if user.device_uid != "SOLEPOWER-GARGI":
+            user.device_uid = "SOLEPOWER-GARGI"
+            db.commit()
+            db.refresh(user)
+        return "SOLEPOWER-GARGI"
+
+    if "evaluator" in clean_email or "evaluator" in clean_name:
+        if user.device_uid != "SOLEPOWER-EVALUATOR":
+            user.device_uid = "SOLEPOWER-EVALUATOR"
+            db.commit()
+            db.refresh(user)
+        return "SOLEPOWER-EVALUATOR"
+
+    # For any general user or Google account:
+    if not user.device_uid or user.device_uid in ["SOLEPOWER-01", "PENDING"]:
+        slug = re.sub(r'[^a-zA-Z0-9]', '', clean_email.split('@')[0]).upper()[:10] or "USER"
+        user.device_uid = f"SOLEPOWER-{slug}-{user.id}"
+        db.commit()
+        db.refresh(user)
+
+    return user.device_uid
+
+
 def seed_default_users(db: Session):
     defaults = [
         {
@@ -89,7 +132,7 @@ def seed_default_users(db: Session):
             "hashed_password": "solepower123",
             "auth_provider": "local",
             "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=Gargi&backgroundColor=10b981",
-            "device_uid": "SOLEPOWER-01"
+            "device_uid": "SOLEPOWER-GARGI"
         },
         {
             "email": "evaluator@aktu.ac.in",
@@ -99,7 +142,7 @@ def seed_default_users(db: Session):
             "hashed_password": "solepower123",
             "auth_provider": "local",
             "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=AKTU&backgroundColor=f59e0b",
-            "device_uid": "SOLEPOWER-01"
+            "device_uid": "SOLEPOWER-EVALUATOR"
         }
     ]
     for d in defaults:
@@ -111,6 +154,7 @@ def seed_default_users(db: Session):
             existing.gender = d["gender"]
             existing.name = d["name"]
             existing.role = d["role"]
+            existing.device_uid = d["device_uid"]
             if not existing.avatar_url:
                 existing.avatar_url = d["avatar_url"]
     db.commit()
@@ -199,6 +243,7 @@ def login_user(req: schemas.LoginRequest, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(user)
 
+    device_uid = get_or_assign_user_device_uid(user, db)
     token = f"solepower_token_{user.id}_{int(datetime.utcnow().timestamp())}"
     return schemas.UserResponse(
         id=user.id,
@@ -206,7 +251,7 @@ def login_user(req: schemas.LoginRequest, db: Session = Depends(get_db)):
         email=user.email,
         avatar_url=user.avatar_url or f"https://api.dicebear.com/7.x/bottts/svg?seed={user.name}",
         auth_provider=user.auth_provider,
-        device_uid=user.device_uid,
+        device_uid=device_uid,
         role=user.role or "Researcher",
         gender=user.gender or ("Female" if "gargi" in user.email.lower() else "Male"),
         token=token
@@ -233,7 +278,7 @@ def register_user(req: schemas.RegisterRequest, db: Session = Depends(get_db)):
         hashed_password=req.password,
         gender=gender_val,
         auth_provider="local",
-        device_uid=req.device_uid or "SOLEPOWER-01",
+        device_uid="PENDING",
         role=req.role or "Researcher",
         avatar_url=f"https://api.dicebear.com/7.x/bottts/svg?seed={req.name}&backgroundColor={avatar_bg}"
     )
@@ -241,6 +286,7 @@ def register_user(req: schemas.RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
+    device_uid = get_or_assign_user_device_uid(user, db)
     token = f"solepower_token_{user.id}_{int(datetime.utcnow().timestamp())}"
     return schemas.UserResponse(
         id=user.id,
@@ -248,7 +294,7 @@ def register_user(req: schemas.RegisterRequest, db: Session = Depends(get_db)):
         email=user.email,
         avatar_url=user.avatar_url,
         auth_provider=user.auth_provider,
-        device_uid=user.device_uid,
+        device_uid=device_uid,
         role=user.role,
         gender=user.gender,
         token=token
@@ -274,7 +320,7 @@ def google_auth(req: schemas.GoogleAuthRequest, db: Session = Depends(get_db)):
             auth_provider="google",
             gender=gender_val,
             avatar_url=avatar,
-            device_uid=req.device_uid or "SOLEPOWER-01",
+            device_uid="PENDING",
             role=role
         )
         db.add(user)
@@ -291,6 +337,7 @@ def google_auth(req: schemas.GoogleAuthRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
+    device_uid = get_or_assign_user_device_uid(user, db)
     token = f"google_token_{user.id}_{int(datetime.utcnow().timestamp())}"
     return schemas.UserResponse(
         id=user.id,
@@ -298,7 +345,7 @@ def google_auth(req: schemas.GoogleAuthRequest, db: Session = Depends(get_db)):
         email=user.email,
         avatar_url=user.avatar_url,
         auth_provider="google",
-        device_uid=user.device_uid,
+        device_uid=device_uid,
         role=user.role or "Researcher",
         gender=user.gender or "Male",
         token=token
@@ -314,6 +361,7 @@ def get_current_user(email: str = Query(..., description="User email"), db: Sess
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    device_uid = get_or_assign_user_device_uid(user, db)
     token = f"solepower_token_{user.id}_{int(datetime.utcnow().timestamp())}"
     return schemas.UserResponse(
         id=user.id,
@@ -321,7 +369,7 @@ def get_current_user(email: str = Query(..., description="User email"), db: Sess
         email=user.email,
         avatar_url=user.avatar_url or f"https://api.dicebear.com/7.x/bottts/svg?seed={user.name}",
         auth_provider=user.auth_provider,
-        device_uid=user.device_uid,
+        device_uid=device_uid,
         role=user.role or "Researcher",
         gender=user.gender or "Male",
         token=token
