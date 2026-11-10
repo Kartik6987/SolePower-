@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLEPOWER - Premium Telemetry</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for Smooth Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Three.js & OrbitControls for 3D Foot Insole Holographic Model -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <!-- Aesthetic Ambient Background Glows -->
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo" style="display: flex !important; align-items: center !important; gap: 12px !important;">
+                
+                <!-- CUSTOM SVG HYBRID LOGO -->
+                <div class="custom-brand-logo" style="
+                    background: linear-gradient(135deg, #06b6d4, #10b981) !important; 
+                    box-shadow: 0 0 20px rgba(6, 182, 212, 0.5) !important; 
+                    width: 44px !important; 
+                    height: 44px !important; 
+                    border-radius: 12px !important; 
+                    display: flex !important; 
+                    align-items: center !important; 
+                    justify-content: center !important;
+                    flex-shrink: 0 !important;
+                    border: none !important;">
+                    
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block !important;">
+                        <path d="M12 2C9.5 2 7.5 4.5 7.5 8C7.5 10.5 8.5 12.5 9 14.5C9.5 16.5 9 19.5 10 21.5C10.5 22.5 11.5 23 12.5 23C13.5 23 14.5 22.5 15 21.5C16 19.5 15.5 16.5 16 14.5C16.5 12.5 17.5 10.5 17.5 8C17.5 4.5 15.5 2 12 2Z" fill="#060913" opacity="0.45"/>
+                        <path d="M10.5 21C11 21.5 12 21.8 12.5 21.8C13 21.8 14 21.5 14.5 21C14.8 19.8 14.5 18.5 14.5 18H10.5C10.5 18.5 10.2 19.8 10.5 21Z" fill="#060913" opacity="0.45"/>
+                        <path d="M14.5 3L6.5 13H12.5L10.5 21L18.5 11H12.5L14.5 3Z" fill="#FFFFFF" stroke="#060913" stroke-width="1" stroke-linejoin="round" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));"/>
+                    </svg>
+                </div>
+                
+                <h2>SOLEPOWER</h2>
+            </div>
+
+            <!-- Tab Navigation Links -->
+            <nav class="sidebar-menu">
+                <a href="#monitor" class="nav-item active" data-tab="view-monitor">
+                    <i class="fa-solid fa-chart-simple"></i> Live Monitor
+                </a>
+                <a href="#analytics" class="nav-item" data-tab="view-analytics">
+                    <i class="fa-solid fa-layer-group"></i> Analytics
+                </a>
+                <a href="#stimulation" class="nav-item" data-tab="view-stimulation">
+                    <i class="fa-solid fa-microchip"></i> Model Stimulation
+                </a>
+                <a href="#history" class="nav-item" data-tab="view-history">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History Log
+                </a>
+                <a href="#config" class="nav-item" data-tab="view-config">
+                    <i class="fa-solid fa-sliders"></i> Hardware Config
+                </a>
+            </nav>
+
+            <div class="project-info">
+                <p class="tag">AKTU Project</p>
+                <p class="sub-tag">BCC 351 • CSE 2nd Year</p>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="main-content">
+            <!-- Top Navbar (Shared across all views) -->
+            <header class="top-navbar">
+                <div class="welcome-text">
+                    <h1 id="page-title">System Dashboard</h1>
+                    <p id="page-subtitle">Dynamic energy harvesting tracking matrix.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div class="hardware-status" id="system-status">
+                        <span class="pulse-dot"></span>
+                        <i class="fa-solid fa-circle-nodes"></i> <span id="status-label">FastAPI & DB Online</span>
+                    </div>
+
+                    <!-- User Profile & Logout Header Pill -->
+                    <div class="user-profile-pill" id="user-profile-pill">
+                        <img id="nav-user-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Kartik&backgroundColor=0ea5e9" class="nav-avatar" alt="Avatar">
+                        <div class="nav-user-info">
+                            <span id="nav-user-name" class="nav-username">Kartik</span>
+                            <span id="nav-user-role" class="nav-userrole">Lead Researcher</span>
+                        </div>
+                        <button id="btn-logout" class="btn-nav-logout" title="Sign Out">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ============================================================ -->
+            <!-- TAB 1: LIVE MONITOR (Original View) -->
+            <!-- ============================================================ -->
+            <div id="view-monitor" class="tab-view active">
+                <!-- Metrics Cards Grid -->
+                <section class="metrics-grid">
+                    <div class="card card-neon-cyan">
+                        <div class="card-icon"><i class="fa-solid fa-shoe-prints"></i></div>
+                        <div class="card-data">
+                            <h3>Session Steps</h3>
+                            <p id="step-count" class="font-display">0</p>
+                        </div>
+                    </div>
+                    <div class="card card-neon-emerald">
+                        <div class="card-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="card-data">
+                            <h3>Total Energy</h3>
+                            <p id="energy-yield" class="font-display">0.00 <span class="unit-text">J</span></p>
+                        </div>
+                    </div>
+                    <div class="card card-neon-amber">
+                        <div class="card-icon"><i class="fa-solid fa-battery-three-quarters"></i></div>
+                        <div class="card-data">
+                            <h3>Storage Cell</h3>
+                            <p id="battery-status" class="font-display">35.0<span class="unit-text">%</span></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hardware Sensor Chips -->
+                <h2 class="section-title">Piezoelectric Sensor Readouts</h2>
+                <section class="chips-container">
+                    <div class="chip voltage-chip">
+                        <span class="chip-label">Voltage Output</span>
+                        <div>
+                            <span class="chip-value font-display" id="chip-v">0.00</span><span class="unit">V</span>
+                        </div>
+                    </div>
+                    <div class="chip current-chip">
+                        <span class="chip-label">Current Flow</span>
+                        <div>
+                            <span class="chip-value font-display" id="chip-i">0.0</span><span class="unit">mA</span>
+                        </div>
+                    </div>
+                    <div class="chip power-chip">
+                        <span class="chip-label">Power Yield</span>
+                        <div>
+                            <span class="chip-value font-display" id="chip-p">0.0</span><span class="unit">mW</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Data Visualisation & Interaction Section -->
+                <section class="data-section">
+                    <!-- Live Chart Window -->
+                    <div class="panel-box chart-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-chart-column" style="color: #06b6d4;"></i> Steps vs Date (Daily Footstep Analytics)
+                            </h3>
+                            <span style="font-size: 0.75rem; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-calendar-week"></i> 7-Day Walking Cadence
+                            </span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="generationChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Controls Panel -->
+                    <div class="panel-box controls-panel">
+                        <h3>Hardware Simulator</h3>
+                        <p>Simulate pressure inputs on the physical heel sole matrix or monitor live ESP32 packets.</p>
+                        <div class="btn-group">
+                            <button id="simulate-btn" class="btn-primary">
+                                <i class="fa-solid fa-shoe-prints"></i> Simulate Single Step
+                            </button>
+                            <button id="auto-btn" class="btn-primary" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);">
+                                <i class="fa-solid fa-person-walking"></i> Auto Walk Simulation
+                            </button>
+                            <button id="reset-btn" class="btn-secondary">
+                                <i class="fa-solid fa-rotate-left"></i> Reset System
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB 2: ANALYTICS VIEW (Deep Energy Telemetry) -->
+            <!-- ============================================================ -->
+            <div id="view-analytics" class="tab-view">
+                <section class="metrics-grid">
+                    <div class="card card-neon-cyan">
+                        <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="card-data">
+                            <h3>Peak Power (P_max)</h3>
+                            <p id="analytics-peak-p" class="font-display">0.0 <span class="unit-text">mW</span></p>
+                        </div>
+                    </div>
+                    <div class="card card-neon-emerald">
+                        <div class="card-icon"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="card-data">
+                            <h3>Average Power</h3>
+                            <p id="analytics-avg-p" class="font-display">0.0 <span class="unit-text">mW</span></p>
+                        </div>
+                    </div>
+                    <div class="card card-neon-amber">
+                        <div class="card-icon"><i class="fa-solid fa-cubes-stacked"></i></div>
+                        <div class="card-data">
+                            <h3>Total Database Records</h3>
+                            <p id="analytics-total-readings" class="font-display">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="analytics-split-grid">
+                    <!-- Energy Breakdown Panel -->
+                    <div class="panel-box">
+                        <h3>Energy Conversion Breakdown</h3>
+                        <div class="analytics-metrics-list">
+                            <div class="metric-row">
+                                <span class="metric-name">Accumulated Joules:</span>
+                                <strong id="analytics-joules" class="font-display">0.0000 J</strong>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-name">Equivalent Watt-Hours:</span>
+                                <strong id="analytics-mwh" class="font-display">0.0000 mWh</strong>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-name">Calculated Energy per Step:</span>
+                                <strong id="analytics-per-step" class="font-display">5.50 mJ</strong>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-name">Supercapacitor Storage Level:</span>
+                                <strong id="analytics-cap-v" class="font-display">3.30 V</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theoretical Engineering Formulas Box -->
+                    <div class="panel-box">
+                        <h3>AKTU BCC 351 Evaluation Model</h3>
+                        <div class="formula-list">
+                            <div class="formula-item">
+                                <span class="formula-label">Instant Power:</span>
+                                <code>P(t) = V(t) × I(t)</code>
+                            </div>
+                            <div class="formula-item">
+                                <span class="formula-label">Energy Integral (Riemann Sum):</span>
+                                <code>E = ∫ P(t) dt ≈ ∑ (P_avg × Δt)</code>
+                            </div>
+                            <div class="formula-item">
+                                <span class="formula-label">Capacitor Stored Energy:</span>
+                                <code>E_cap = ½ × C × (V_final² - V_initial²)</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB: MODEL STIMULATION (Biomechanical Gait & Stress Simulator)-->
+            <!-- ============================================================ -->
+            <div id="view-stimulation" class="tab-view">
+                <!-- Top Metrics Row -->
+                <section class="metrics-grid">
+                    <div class="card card-neon-cyan">
+                        <div class="card-icon"><i class="fa-solid fa-weight-hanging"></i></div>
+                        <div class="card-data">
+                            <h3>Ground Reaction Force</h3>
+                            <p id="stim-force" class="font-display">999 <span class="unit-text">N</span></p>
+                        </div>
+                    </div>
+                    <div class="card card-neon-emerald">
+                        <div class="card-icon"><i class="fa-solid fa-compress"></i></div>
+                        <div class="card-data">
+                            <h3>Mechanical Stress (σ)</h3>
+                            <p id="stim-stress" class="font-display">128.4 <span class="unit-text">kPa</span></p>
+                        </div>
+                    </div>
+                    <div class="card card-neon-amber">
+                        <div class="card-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+                        <div class="card-data">
+                            <h3>Simulated Power Yield</h3>
+                            <p id="stim-power" class="font-display">36.5 <span class="unit-text">mW</span></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================================================ -->
+                <!-- INTERACTIVE FOOT INSOLE PRESSURE HEATMAP (3D & 2D VISUALIZER)-->
+                <!-- ============================================================ -->
+                <div class="panel-box insole-heatmap-section" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <div>
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-cube" style="color: #06b6d4;"></i> Interactive Foot Insole 3D Pressure Structure & Heatmap
+                            </h3>
+                            <p class="sub-text" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+                                3D anatomical shoe sole model with 4 physical PZT piezoelectric transducers. Rotate, zoom & simulate kinetic pressure:
+                            </p>
+                        </div>
+                        
+                        <!-- 3-Way Mode Switcher: 3D Shoe Insole vs 3D Gait Walker vs 2D Schematic -->
+                        <div class="view-mode-toggle-group">
+                            <button id="btn-mode-3d" class="btn-mode-toggle active" title="Switch to 3D Smart Shoe Sole Model">
+                                <i class="fa-solid fa-cube"></i> 3D Smart Insole
+                            </button>
+                            <button id="btn-mode-walker" class="btn-mode-toggle" title="Switch to 3D Human Kinetic Walking Simulation (Male/Female)">
+                                <i class="fa-solid fa-person-walking"></i> 3D Human Gait Walker
+                            </button>
+                            <button id="btn-mode-2d" class="btn-mode-toggle" title="Switch to 2D Technical Schematic">
+                                <i class="fa-solid fa-draw-polygon"></i> 2D Schematic
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="heatmap-container-grid">
+                        <!-- Left: Visual Insole Diagram (3D Sole, 3D Walker, or 2D) -->
+                        <div class="insole-canvas-box" id="insole-main-box">
+                            <!-- 3D Insole Camera Controls Toolbar -->
+                            <div id="insole-3d-toolbar" class="insole-3d-toolbar">
+                                <button id="btn-cam-iso" class="btn-cam-pill active" title="Isometric Perspective"><i class="fa-solid fa-compass"></i> 3D Angle</button>
+                                <button id="btn-cam-top" class="btn-cam-pill" title="Top Anatomical Contact Surface"><i class="fa-solid fa-arrow-down"></i> Top View</button>
+                                <button id="btn-cam-bottom" class="btn-cam-pill" title="Bottom Sensor Matrix Mounting"><i class="fa-solid fa-arrow-up"></i> Sensors (Bottom)</button>
+                                <button id="btn-cam-rotate" class="btn-cam-pill" title="Toggle Continuous Auto-Spin"><i class="fa-solid fa-rotate"></i> Auto-Spin</button>
+                                <button id="btn-cam-reset" class="btn-cam-pill" title="Reset View"><i class="fa-solid fa-arrows-rotate"></i> Reset</button>
+                            </div>
+
+                            <!-- 3D Three.js Container (Shoe Insole) -->
+                            <div id="insole-3d-container" class="insole-3d-viewport">
+                                <div id="insole-3d-tooltip" class="insole-3d-tooltip" style="display: none;"></div>
+                                <div class="insole-3d-hint">
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to rotate 360° • Scroll to zoom • Click PZT disc to test
+                                </div>
+                            </div>
+
+                            <!-- 3D Biomechanical Human Gait Walker Container (Male / Female) -->
+                            <div id="insole-walker-container" class="insole-walker-viewport" style="display: none; width: 100%; height: 100%; position: relative;">
+                                <!-- Walker Floating Controls Toolbar -->
+                                <div id="walker-3d-toolbar" class="walker-3d-toolbar">
+                                    <!-- Logged-in Profile Avatar Badge (Locked to User Gender) -->
+                                    <div class="walker-pill-group" id="walker-profile-group">
+                                        <span class="walker-toolbar-label"><i class="fa-solid fa-user-check"></i> Subject:</span>
+                                        <div id="walker-user-badge" class="walker-user-badge">
+                                            <!-- Dynamically rendered according to logged-in user profile -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Walking Direction Indicator -->
+                                    <div class="walker-pill-group">
+                                        <div id="walker-track-badge" class="walker-badge-pill" style="border: 1px solid rgba(6, 182, 212, 0.35); background: rgba(6, 182, 212, 0.08); color: #38bdf8; font-size: 0.74rem; font-weight: 600; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
+                                            <i class="fa-solid fa-arrow-up-long"></i>
+                                            <span>Forward Gait Track</span>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- Camera Angles -->
+                                    <div class="walker-pill-group">
+                                        <button id="btn-walker-cam-iso" class="btn-walker-pill active" title="Isometric 3D View"><i class="fa-solid fa-compass"></i> 3D Orbit</button>
+                                        <button id="btn-walker-cam-side" class="btn-walker-pill" title="Side Profile Gait Analysis"><i class="fa-solid fa-arrows-left-right"></i> Side Profile</button>
+                                        <button id="btn-walker-cam-feet" class="btn-walker-pill" title="Close-up on Kinetic Smart Shoes"><i class="fa-solid fa-shoe-prints"></i> Shoe Strike</button>
+                                        <button id="btn-walker-cam-rotate" class="btn-walker-pill" title="Toggle Auto-Spin"><i class="fa-solid fa-rotate"></i> Spin</button>
+                                        <button id="btn-walker-cam-reset" class="btn-walker-pill" title="Reset Camera View"><i class="fa-solid fa-arrows-rotate"></i></button>
+                                        <button id="btn-walker-expand" class="btn-walker-pill" title="Toggle Full Width / Expanded View"><i class="fa-solid fa-expand"></i> Full Width</button>
+                                    </div>
+                                </div>
+
+                                <!-- Three.js Canvas Mount Point for Walker -->
+                                <div id="walker-three-canvas"></div>
+
+
+                                <!-- Control Instruction Hint -->
+                                <div class="insole-3d-hint">
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> Drag to rotate 360° • Scroll to zoom • Shoes emit kinetic harvest waves on heel contact
+                                </div>
+                            </div>
+
+                            <!-- 2D SVG Container (Hidden in 3D mode) -->
+                            <div id="insole-2d-container" class="insole-2d-viewport" style="display: none; width: 100%; height: 100%;">
+                                <svg class="insole-svg" viewBox="0 0 200 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Anatomical Shoe Sole Silhouette -->
+                                    <path d="M100 15 C135 15, 160 40, 165 80 C170 120, 160 160, 145 195 C138 215, 142 245, 142 275 C142 305, 125 325, 100 325 C75 325, 58 305, 58 275 C58 245, 62 215, 55 195 C40 160, 30 120, 35 80 C40 40, 65 15, 100 15 Z" 
+                                          fill="rgba(15, 23, 42, 0.85)" stroke="rgba(6, 182, 212, 0.45)" stroke-width="2.5" />
+                                    
+                                    <!-- Internal Insole Contour Lines -->
+                                    <path d="M98 30 C125 30, 145 52, 148 85 C152 118, 145 150, 132 180 C125 200, 128 230, 128 265 C128 295, 115 310, 98 310 C82 310, 72 295, 72 265 C72 230, 75 200, 68 180 C55 150, 48 118, 52 85 C55 52, 72 30, 98 30 Z" 
+                                          fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+                                    <!-- Copper Foil Bus Interconnect Traces (Circuit Wiring to Bridge) -->
+                                    <path d="M100 275 L100 180 M100 180 L75 180 M100 180 L112 115 M112 115 L95 55" stroke="rgba(6, 182, 212, 0.25)" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+                                    <!-- 1. Heel Primary Transducer Disc (60% load) -->
+                                    <g class="piezo-disc" id="disc-heel" data-zone="heel">
+                                        <circle cx="100" cy="275" r="28" fill="url(#gradStimHeel)" stroke="#f43f5e" stroke-width="2"/>
+                                        <circle cx="100" cy="275" r="14" fill="#f43f5e" opacity="0.35"/>
+                                        <text x="100" y="271" fill="#ffffff" font-size="9" font-family="'Space Grotesk', sans-serif" font-weight="800" text-anchor="middle">HEEL (P1)</text>
+                                        <text x="100" y="283" fill="#fca5a5" font-size="8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" text-anchor="middle">60% Load</text>
+                                    </g>
+
+                                    <!-- 2. Lateral Arch Transducer Disc (15% load) -->
+                                    <g class="piezo-disc" id="disc-arch" data-zone="arch">
+                                        <circle cx="75" cy="180" r="18" fill="url(#gradStimArch)" stroke="#f59e0b" stroke-width="1.5"/>
+                                        <circle cx="75" cy="180" r="9" fill="#f59e0b" opacity="0.35"/>
+                                        <text x="75" y="177" fill="#ffffff" font-size="8" font-family="'Space Grotesk', sans-serif" font-weight="800" text-anchor="middle">ARCH (P2)</text>
+                                        <text x="75" y="187" fill="#fcd34d" font-size="7" font-family="'Plus Jakarta Sans', sans-serif" text-anchor="middle">15%</text>
+                                    </g>
+
+                                    <!-- 3. Metatarsal / Ball Transducer Disc (20% load) -->
+                                    <g class="piezo-disc" id="disc-ball" data-zone="ball">
+                                        <circle cx="112" cy="115" r="22" fill="url(#gradStimBall)" stroke="#06b6d4" stroke-width="1.5"/>
+                                        <circle cx="112" cy="115" r="11" fill="#06b6d4" opacity="0.35"/>
+                                        <text x="112" y="112" fill="#ffffff" font-size="8" font-family="'Space Grotesk', sans-serif" font-weight="800" text-anchor="middle">BALL (P3)</text>
+                                        <text x="112" y="122" fill="#67e8f9" font-size="7" font-family="'Plus Jakarta Sans', sans-serif" text-anchor="middle">20%</text>
+                                    </g>
+
+                                    <!-- 4. Hallux / Toe-off Transducer Disc (5% load) -->
+                                    <g class="piezo-disc" id="disc-toe" data-zone="toe">
+                                        <circle cx="95" cy="55" r="16" fill="url(#gradStimToe)" stroke="#10b981" stroke-width="1.5"/>
+                                        <circle cx="95" cy="55" r="8" fill="#10b981" opacity="0.35"/>
+                                        <text x="95" y="52" fill="#ffffff" font-size="8" font-family="'Space Grotesk', sans-serif" font-weight="800" text-anchor="middle">TOE (P4)</text>
+                                        <text x="95" y="62" fill="#6ee7b7" font-size="7" font-family="'Plus Jakarta Sans', sans-serif" text-anchor="middle">5%</text>
+                                    </g>
+
+                                    <!-- SVG Gradients -->
+                                    <defs>
+                                        <radialGradient id="gradStimHeel" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.6"/>
+                                            <stop offset="100%" stop-color="#881337" stop-opacity="0.25"/>
+                                        </radialGradient>
+                                        <radialGradient id="gradStimArch" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6"/>
+                                            <stop offset="100%" stop-color="#78350f" stop-opacity="0.25"/>
+                                        </radialGradient>
+                                        <radialGradient id="gradStimBall" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.6"/>
+                                            <stop offset="100%" stop-color="#0e7490" stop-opacity="0.25"/>
+                                        </radialGradient>
+                                        <radialGradient id="gradStimToe" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.6"/>
+                                            <stop offset="100%" stop-color="#065f46" stop-opacity="0.25"/>
+                                        </radialGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Right: Detailed 4-Transducer Distribution Cards -->
+                        <!-- Right: Detailed 4-Transducer Distribution Cards -->
+                        <div class="transducer-cards-grid">
+                            <!-- Card 1: Heel (P1) -->
+                            <div class="transducer-card" id="card-p1" data-zone="heel">
+                                <div class="transducer-card-top">
+                                    <div class="transducer-id-group">
+                                        <div class="transducer-badge-tag p1-tag">P1</div>
+                                        <div class="transducer-meta">
+                                            <div class="transducer-title-row">
+                                                <h4 class="transducer-name">Heel Transducer Disc</h4>
+                                                <span class="live-status-pill" id="card-p1-status">READY</span>
+                                            </div>
+                                            <span class="zone-subtitle">Heel-strike impact zone</span>
+                                        </div>
+                                    </div>
+                                    <span class="load-pill p1-load" id="card-p1-pct">60% Load</span>
+                                </div>
+                                <div class="transducer-card-metrics">
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt"></i> Voltage</span>
+                                        <strong class="chip-val p1-accent" id="card-p1-volt">0.00 V</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-wave-square"></i> Current</span>
+                                        <strong class="chip-val" id="card-p1-curr">0.0 mA</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt-lightning"></i> Power</span>
+                                        <strong class="chip-val" id="card-p1-pwr">0.0 mW</strong>
+                                    </div>
+                                </div>
+                                <div class="load-progress-track">
+                                    <div class="load-fill-bar p1-fill" id="card-p1-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Arch (P2) -->
+                            <div class="transducer-card" id="card-p2" data-zone="arch">
+                                <div class="transducer-card-top">
+                                    <div class="transducer-id-group">
+                                        <div class="transducer-badge-tag p2-tag">P2</div>
+                                        <div class="transducer-meta">
+                                            <div class="transducer-title-row">
+                                                <h4 class="transducer-name">Arch Transducer Disc</h4>
+                                                <span class="live-status-pill" id="card-p2-status">READY</span>
+                                            </div>
+                                            <span class="zone-subtitle">Mid-foot stabilizer zone</span>
+                                        </div>
+                                    </div>
+                                    <span class="load-pill p2-load" id="card-p2-pct">15% Load</span>
+                                </div>
+                                <div class="transducer-card-metrics">
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt"></i> Voltage</span>
+                                        <strong class="chip-val p2-accent" id="card-p2-volt">0.00 V</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-wave-square"></i> Current</span>
+                                        <strong class="chip-val" id="card-p2-curr">0.0 mA</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt-lightning"></i> Power</span>
+                                        <strong class="chip-val" id="card-p2-pwr">0.0 mW</strong>
+                                    </div>
+                                </div>
+                                <div class="load-progress-track">
+                                    <div class="load-fill-bar p2-fill" id="card-p2-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Ball of Foot (P3) -->
+                            <div class="transducer-card" id="card-p3" data-zone="ball">
+                                <div class="transducer-card-top">
+                                    <div class="transducer-id-group">
+                                        <div class="transducer-badge-tag p3-tag">P3</div>
+                                        <div class="transducer-meta">
+                                            <div class="transducer-title-row">
+                                                <h4 class="transducer-name">Ball of Foot Disc</h4>
+                                                <span class="live-status-pill" id="card-p3-status">READY</span>
+                                            </div>
+                                            <span class="zone-subtitle">Metatarsal pushoff zone</span>
+                                        </div>
+                                    </div>
+                                    <span class="load-pill p3-load" id="card-p3-pct">20% Load</span>
+                                </div>
+                                <div class="transducer-card-metrics">
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt"></i> Voltage</span>
+                                        <strong class="chip-val p3-accent" id="card-p3-volt">0.00 V</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-wave-square"></i> Current</span>
+                                        <strong class="chip-val" id="card-p3-curr">0.0 mA</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt-lightning"></i> Power</span>
+                                        <strong class="chip-val" id="card-p3-pwr">0.0 mW</strong>
+                                    </div>
+                                </div>
+                                <div class="load-progress-track">
+                                    <div class="load-fill-bar p3-fill" id="card-p3-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Toe (P4) -->
+                            <div class="transducer-card" id="card-p4" data-zone="toe">
+                                <div class="transducer-card-top">
+                                    <div class="transducer-id-group">
+                                        <div class="transducer-badge-tag p4-tag">P4</div>
+                                        <div class="transducer-meta">
+                                            <div class="transducer-title-row">
+                                                <h4 class="transducer-name">Toe Transducer Disc</h4>
+                                                <span class="live-status-pill" id="card-p4-status">READY</span>
+                                            </div>
+                                            <span class="zone-subtitle">Hallux toe-off impulse zone</span>
+                                        </div>
+                                    </div>
+                                    <span class="load-pill p4-load" id="card-p4-pct">5% Load</span>
+                                </div>
+                                <div class="transducer-card-metrics">
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt"></i> Voltage</span>
+                                        <strong class="chip-val p4-accent" id="card-p4-volt">0.00 V</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-wave-square"></i> Current</span>
+                                        <strong class="chip-val" id="card-p4-curr">0.0 mA</strong>
+                                    </div>
+                                    <div class="metric-chip">
+                                        <span class="chip-label"><i class="fa-solid fa-bolt-lightning"></i> Power</span>
+                                        <strong class="chip-val" id="card-p4-pwr">0.0 mW</strong>
+                                    </div>
+                                </div>
+                                <div class="load-progress-track">
+                                    <div class="load-fill-bar p4-fill" id="card-p4-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stimulation Controls & Projections Split Grid -->
+                <div class="stimulation-split-grid">
+                    <!-- Left: Gait Parameters & Model Stimulation Controller -->
+                    <div class="panel-box">
+                        <h3>Gait Dynamics & Kinetic Stimulation</h3>
+
+                        <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.6rem;">1. Select Walking Gait Pace</label>
+                        <div class="gait-pills">
+                            <div class="gait-pill active" data-gait="casual" data-mult="1.2">
+                                <i class="fa-solid fa-person-walking"></i> Casual (1.0 m/s)
+                            </div>
+                            <div class="gait-pill" data-gait="brisk" data-mult="1.5">
+                                <i class="fa-solid fa-person-walking-dashed-line-arrow-right"></i> Brisk Walk (1.5 m/s)
+                            </div>
+                            <div class="gait-pill" data-gait="jog" data-mult="2.2">
+                                <i class="fa-solid fa-person-running"></i> Jogging (2.5 m/s)
+                            </div>
+                            <div class="gait-pill" data-gait="stairs" data-mult="2.7">
+                                <i class="fa-solid fa-stairs"></i> Stairs / Incline
+                            </div>
+                        </div>
+
+                        <!-- Body Weight Slider -->
+                        <div class="range-slider-group">
+                            <div class="slider-header">
+                                <span>2. Simulated Body Mass</span>
+                                <span class="slider-val-badge" id="val-weight">68 kg</span>
+                            </div>
+                            <input type="range" id="slider-weight" min="45" max="110" value="68" class="custom-slider">
+                        </div>
+
+                        <!-- Cadence Slider -->
+                        <div class="range-slider-group">
+                            <div class="slider-header">
+                                <span>3. Walking Cadence (Pace)</span>
+                                <span class="slider-val-badge" id="val-cadence">90 SPM</span>
+                            </div>
+                            <input type="range" id="slider-cadence" min="50" max="140" value="90" class="custom-slider">
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="stimulation-actions">
+                            <button id="btn-stimulate-once" class="btn-primary btn-stimulate">
+                                <i class="fa-solid fa-hand-sparkles"></i> Apply Mechanical Impulse
+                            </button>
+                            <button id="btn-stimulate-loop" class="btn-primary btn-continuous">
+                                <i class="fa-solid fa-play"></i> Continuous Gait Stimulation
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Theoretical Harvester Mathematical Projection -->
+                    <div class="panel-box">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <h3 style="margin: 0;">Theoretical Harvester Mathematical Projection</h3>
+                            <span style="font-size: 0.8rem; color: #10b981; font-family: monospace;">Formula: F_impact = m × g × k_gait</span>
+                        </div>
+
+                        <div class="projection-grid" style="grid-template-columns: 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+                            <div class="metric-row" style="background: rgba(255,255,255,0.02); padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                                <span class="metric-name" style="font-size: 0.82rem;">Daily Yield (5,000 steps):</span>
+                                <strong id="proj-daily-joules" class="font-display" style="color: #10b981; font-size: 1.2rem;">27.5 J</strong>
+                            </div>
+                            <div class="metric-row" style="background: rgba(255,255,255,0.02); padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                                <span class="metric-name" style="font-size: 0.82rem;">Electrical Conversion Efficiency:</span>
+                                <strong id="proj-efficiency" class="font-display" style="color: #06b6d4; font-size: 1.2rem;">14.2%</strong>
+                            </div>
+                            <div class="metric-row" style="background: rgba(255,255,255,0.02); padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                                <span class="metric-name" style="font-size: 0.82rem;">Supercapacitor 3.7V Charge Time:</span>
+                                <strong id="proj-charge-time" class="font-display" style="color: #f59e0b; font-size: 1.2rem;">~880 steps</strong>
+                            </div>
+                        </div>
+
+                        <!-- Mathematical Model Notes -->
+                        <div class="formula-list" style="margin-top: 0.5rem;">
+                            <div class="formula-item" style="margin-bottom: 0.5rem;">
+                                <span class="formula-label">Impact Force:</span>
+                                <code style="font-size: 0.88rem;">F = m × g × k_gait</code>
+                            </div>
+                            <div class="formula-item">
+                                <span class="formula-label">Piezoelectric Output:</span>
+                                <code style="font-size: 0.88rem;">V_piezo = g_33 × σ × t_disc</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB 3: HISTORY LOG (PostgreSQL Live Table) -->
+            <!-- ============================================================ -->
+            <div id="view-history" class="tab-view">
+                <div class="panel-box history-panel">
+                    <div class="history-panel-header">
+                        <div>
+                            <h3>Live Telemetry Log from PostgreSQL</h3>
+                            <p class="sub-text">Showing latest sensor records permanently saved in database <strong>solepower_db</strong>.</p>
+                        </div>
+                        <button class="btn-refresh" id="refresh-table-btn" onclick="loadHistoryTable()">
+                            <i class="fa-solid fa-arrows-rotate"></i> Refresh Records
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Timestamp (UTC)</th>
+                                    <th>Device</th>
+                                    <th>Voltage (V)</th>
+                                    <th>Current (mA)</th>
+                                    <th>Power (mW)</th>
+                                    <th>Storage (V)</th>
+                                    <th>Steps</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">Loading database telemetry records...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- TAB 4: HARDWARE CONFIG -->
+            <!-- ============================================================ -->
+            <div id="view-config" class="tab-view">
+                <div class="config-grid">
+                    <div class="panel-box">
+                        <h3>Microcontroller & Network Settings</h3>
+                        <div class="config-form">
+                            <div class="form-group">
+                                <label>Registered Device UID</label>
+                                <input type="text" id="cfg-device-uid" value="SOLEPOWER-01" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Target Backend Endpoint</label>
+                                <input type="text" id="cfg-api-url" value="http://192.168.100.67:8000/api/readings" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Telemetry Sampling Cadence</label>
+                                <select id="cfg-cadence" class="form-control">
+                                    <option value="1000">1.0 second (High Cadence)</option>
+                                    <option value="1500" selected>1.5 seconds (Standard Walk)</option>
+                                    <option value="3000">3.0 seconds (Power Saver)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>PostgreSQL Database Status</label>
+                                <div class="badge-status-box">
+                                    <span class="status-indicator-green"></span>
+                                    <span>Database: <strong>solepower_db</strong> (Connected)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-box">
+                        <h3>Hardware Specifications (Sole Matrix)</h3>
+                        <div class="specs-list">
+                            <div class="spec-item">
+                                <span>Harvester Type:</span>
+                                <strong>PZT Piezoelectric Transducer Array</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>Rectifier Circuit:</span>
+                                <strong>Schottky Bridge (4x 1N5819)</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>Energy Storage:</span>
+                                <strong>5.5V 1.0F Supercapacitor Buffer</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>Sensor Telemetry:</span>
+                                <strong>INA219 I2C High-Side Bus Monitor</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>MCU Board:</span>
+                                <strong>ESP32 DevKit V1 (30-pin)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

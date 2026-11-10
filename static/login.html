@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLEPOWER - Telemetry Authentication Portal</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #030712;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 480px;
+            margin: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .login-glass-card {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(6, 182, 212, 0.28);
+            border-radius: 26px;
+            padding: 2.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(6, 182, 212, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #06b6d4, #10b981, #f43f5e);
+        }
+
+        .login-brand-header {
+            text-align: center;
+            margin-bottom: 1.6rem;
+        }
+
+        .login-brand-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.5);
+            margin-bottom: 0.85rem;
+        }
+
+        .login-brand-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-brand-subtitle {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* 2 Primary Mode Tabs: Login vs Create a New Account */
+        .auth-tab-switch {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            background: rgba(30, 41, 59, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            gap: 5px;
+        }
+
+        .auth-tab-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .auth-tab-btn.active {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.28), rgba(16, 185, 129, 0.22));
+            border: 1px solid rgba(6, 182, 212, 0.45);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.25);
+        }
+
+        /* Google Sign-In Button */
+        .btn-google-auth {
+            width: 100%;
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .btn-google-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+            background: #f8fafc;
+        }
+
+        .google-icon-svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Divider */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.35rem 0;
+            color: #64748b;
+            font-size: 0.76rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+        }
+
+        .auth-divider:not(:empty)::before {
+            margin-right: .75em;
+        }
+
+        .auth-divider:not(:empty)::after {
+            margin-left: .75em;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.15rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon-wrapper i.lead-icon {
+            position: absolute;
+            left: 14px;
+            color: #06b6d4;
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+
+        .input-icon-wrapper i.toggle-pass {
+            position: absolute;
+            right: 14px;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .input-icon-wrapper i.toggle-pass:hover {
+            color: #06b6d4;
+        }
+
+        .auth-input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 11px 40px 11px 42px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.25s ease;
+        }
+
+        .auth-input:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+            background: rgba(15, 23, 42, 0.98);
+        }
+
+        /* Sex / Gender Selector Grid */
+        .gender-selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .gender-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 11px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: #94a3b8;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .gender-option:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            background: rgba(30, 41, 59, 0.8);
+            color: #fff;
+        }
+
+        .gender-option.active-male {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.15);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.3);
+        }
+
+        .gender-option.active-female {
+            border-color: #f43f5e;
+            background: rgba(244, 63, 94, 0.15);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(244, 63, 94, 0.3);
+        }
+
+        .auth-options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            margin-bottom: 1.35rem;
+            color: #94a3b8;
+        }
+
+        .auth-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .auth-checkbox input {
+            accent-color: #06b6d4;
+            cursor: pointer;
+        }
+
+        /* Submit Button */
+        .btn-auth-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35);
+        }
+
+        .btn-auth-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.5);
+            filter: brightness(1.08);
+        }
+
+        /* Quick Demo Presets */
+        .demo-presets-box {
+            margin-top: 1.5rem;
+            background: rgba(30, 41, 59, 0.35);
+            border: 1px dashed rgba(6, 182, 212, 0.25);
+            border-radius: 14px;
+            padding: 0.85rem;
+        }
+
+        .demo-presets-title {
+            font-size: 0.72rem;
+            color: #06b6d4;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .demo-pills-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .demo-pill-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .demo-pill-btn:hover {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: rgba(6, 182, 212, 0.4);
+            color: #fff;
+            transform: translateX(3px);
+        }
+
+        .demo-pill-btn span.badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        /* Google Modal */
+        .google-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .google-modal-box {
+            background: #ffffff;
+            color: #1f2937;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.25s ease-out;
+            position: relative;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .google-acc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .google-acc-item:hover {
+            background: #f1f5f9;
+        }
+
+        .google-acc-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Error/Status Banner */
+        .auth-alert {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-alert-error {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            color: #f43f5e;
+        }
+
+        .auth-alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Glowing Backdrops -->
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <div class="login-wrapper">
+        <div class="login-glass-card">
+            
+            <!-- Brand Header -->
+            <div class="login-brand-header">
+                <div class="login-brand-logo">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C9.5 2 7.5 4.5 7.5 8C7.5 10.5 8.5 12.5 9 14.5C9.5 16.5 9 19.5 10 21.5C10.5 22.5 11.5 23 12.5 23C13.5 23 14.5 22.5 15 21.5C16 19.5 15.5 16.5 16 14.5C16.5 12.5 17.5 10.5 17.5 8C17.5 4.5 15.5 2 12 2Z" fill="#060913" opacity="0.45"/>
+                        <path d="M10.5 21C11 21.5 12 21.8 12.5 21.8C13 21.8 14 21.5 14.5 21C14.8 19.8 14.5 18.5 14.5 18H10.5C10.5 18.5 10.2 19.8 10.5 21Z" fill="#060913" opacity="0.45"/>
+                        <path d="M14.5 3L6.5 13H12.5L10.5 21L18.5 11H12.5L14.5 3Z" fill="#FFFFFF" stroke="#060913" stroke-width="1" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="login-brand-title">SOLEPOWER</h1>
+                <p class="login-brand-subtitle" id="portal-subtitle">IoT Footwear Energy Harvesting Telemetry Hub</p>
+            </div>
+
+            <!-- 2 Primary Mode Tabs: Login vs Create a New Account -->
+            <div class="auth-tab-switch">
+                <button id="tab-btn-signin" class="auth-tab-btn active" type="button">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login
+                </button>
+                <button id="tab-btn-register" class="auth-tab-btn" type="button">
+                    <i class="fa-solid fa-user-plus"></i> Create a New Account
+                </button>
+            </div>
+
+            <!-- Status Alert Banner -->
+            <div id="auth-alert" class="auth-alert"></div>
+
+            <!-- Google Sign-In Button (Shown in Login tab) -->
+            <div id="section-google-auth">
+                <button id="btn-google-login" class="btn-google-auth" type="button">
+                    <svg class="google-icon-svg" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.29 21.43 7.37 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.29 2.57 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </button>
+                <div class="auth-divider">or sign in with ID / Gmail</div>
+            </div>
+
+            <!-- Authentication Form -->
+            <form id="auth-form">
+                <!-- 1. Name field (Mandatory in Create Account mode) -->
+                <div class="form-group" id="group-name" style="display: none;">
+                    <label class="form-label" for="input-name">Full Name</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-user lead-icon"></i>
+                        <input type="text" id="input-name" class="auth-input" placeholder="Enter your full name (e.g. Kartik Sharma)">
+                    </div>
+                </div>
+
+                <!-- 2. Gmail / Email Address field -->
+                <div class="form-group">
+                    <label class="form-label" for="input-email" id="label-email">Gmail / Email ID</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-envelope lead-icon"></i>
+                        <input type="email" id="input-email" class="auth-input" placeholder="e.g. yourname@gmail.com" required>
+                    </div>
+                </div>
+
+                <!-- 3. Password field -->
+                <div class="form-group">
+                    <label class="form-label" for="input-password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock lead-icon"></i>
+                        <input type="password" id="input-password" class="auth-input" placeholder="••••••••" required>
+                        <i class="fa-solid fa-eye toggle-pass" id="btn-toggle-pass" title="Show/Hide Password"></i>
+                    </div>
+                </div>
+
+                <!-- 4. Sex (Gender) field (Mandatory in Create Account mode) -->
+                <div class="form-group" id="group-gender" style="display: none;">
+                    <label class="form-label">Sex / Gender</label>
+                    <div class="gender-selector-grid">
+                        <div class="gender-option active-male" id="opt-gender-male">
+                            <i class="fa-solid fa-person" style="color: #06b6d4; font-size: 1.15rem;"></i>
+                            <span>Male</span>
+                        </div>
+                        <div class="gender-option" id="opt-gender-female">
+                            <i class="fa-solid fa-person-dress" style="color: #f43f5e; font-size: 1.15rem;"></i>
+                            <span>Female</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Options Row (Remember session in Login mode) -->
+                <div class="auth-options-row" id="row-login-options">
+                    <label class="auth-checkbox">
+                        <input type="checkbox" id="check-remember" checked>
+                        <span>Remember session</span>
+                    </label>
+                    <a href="javascript:void(0)" id="link-forgot-pass" style="color: #06b6d4; text-decoration: none;">Forgot password?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="btn-submit-auth" class="btn-auth-submit">
+                    <span id="btn-submit-text">Login to Telemetry Hub</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- AKTU BCC 351 Project Viva Quick Presets (Shown in Login tab) -->
+            <div class="demo-presets-box" id="section-demo-presets">
+                <div class="demo-presets-title">
+                    <i class="fa-solid fa-bolt-lightning"></i> 1-Click Demo Login (Project Evaluator Presets)
+                </div>
+                <div class="demo-pills-list">
+                    <button class="demo-pill-btn" type="button" data-email="kartik@solepower.iot" data-pass="solepower123" data-gender="Male">
+                        <span><i class="fa-solid fa-user-astronaut" style="color: #06b6d4;"></i> Kartik (Lead Researcher - Male)</span>
+                        <span class="badge">Autofill</span>
+                    </button>
+                    <button class="demo-pill-btn" type="button" data-email="gargi@solepower.iot" data-pass="solepower123" data-gender="Female">
+                        <span><i class="fa-solid fa-user-graduate" style="color: #f43f5e;"></i> Gargi Arora (Co-Researcher - Female)</span>
+                        <span class="badge">Autofill</span>
+                    </button>
+                    <button class="demo-pill-btn" type="button" data-email="evaluator@aktu.ac.in" data-pass="solepower123" data-gender="Male">
+                        <span><i class="fa-solid fa-chalkboard-user" style="color: #f59e0b;"></i> AKTU Project Evaluator</span>
+                        <span class="badge">Guest</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div style="text-align: center; margin-top: 1.5rem; font-size: 0.74rem; color: #64748b;">
+                AKTU Mini Project BCC 351 • CSE 2nd Year • Dronacharya Group of Institutions
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Google One-Tap Account Selector Modal -->
+    <div id="google-modal" class="google-modal-backdrop">
+        <div class="google-modal-box">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg class="google-icon-svg" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.29 21.43 7.37 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.29 2.57 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span style="font-weight: 700; font-size: 1rem; color: #1f2937;">Sign in with Google</span>
+                </div>
+                <button id="btn-close-google-modal" type="button" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Choose an account to continue to <strong>SOLEPOWER IoT Telemetry</strong></p>
+
+            <div class="google-acc-list">
+                <div class="google-acc-item" data-name="Kartik" data-email="kartik.developer@gmail.com" data-gender="Male" data-avatar="https://api.dicebear.com/7.x/bottts/svg?seed=Kartik&backgroundColor=0ea5e9">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Kartik&backgroundColor=0ea5e9" class="google-acc-avatar" alt="Avatar">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.92rem; color: #111827;">Kartik Sharma (Male)</div>
+                        <div style="font-size: 0.8rem; color: #6b7280;">kartik.developer@gmail.com</div>
+                    </div>
+                </div>
+
+                <div class="google-acc-item" data-name="Gargi Arora" data-email="gargi.arora@gmail.com" data-gender="Female" data-avatar="https://api.dicebear.com/7.x/bottts/svg?seed=Gargi&backgroundColor=f43f5e">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Gargi&backgroundColor=f43f5e" class="google-acc-avatar" alt="Avatar">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.92rem; color: #111827;">Gargi Arora (Female)</div>
+                        <div style="font-size: 0.8rem; color: #6b7280;">gargi.arora@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Custom Account Option -->
+                <div class="google-acc-item" id="btn-custom-google">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e7ff; display: flex; align-items: center; justify-content: center; color: #4338ca;">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.92rem; color: #111827;">Use another Google account</div>
+                        <div style="font-size: 0.8rem; color: #6b7280;">Enter your own Google email</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.25rem; font-size: 0.72rem; color: #9ca3af; text-align: center;">
+                To continue, Google will share your name, email address, and profile picture with SOLEPOWER.
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Logic -->
+    <script src="/static/login.js"></script>
+</body>
+</html>
