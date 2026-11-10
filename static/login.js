@@ -256,95 +256,106 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
-    // 6. GOOGLE SIGN-IN FLOW
+    // 6. REAL OFFICIAL GOOGLE IDENTITY SERVICES OAUTH FLOW
     // ============================================================
-    if (btnGoogleLogin && googleModal) {
+    const GOOGLE_CLIENT_ID = '890272269079-70q1uf9bfv5ll12lolp0tq0lkkkn58gg.apps.googleusercontent.com';
+    let googleTokenClient = null;
+
+    function setupRealGoogleAuth() {
+        if (typeof google === 'undefined' || !google.accounts) {
+            setTimeout(setupRealGoogleAuth, 150);
+            return;
+        }
+
+        try {
+            // 1. Initialize Token Client for Google Sign-In Popup window
+            googleTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'email profile openid',
+                callback: async (tokenResponse) => {
+                    if (tokenResponse && tokenResponse.access_token) {
+                        showAlert('Verifying Google credentials...', 'success');
+                        try {
+                            const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                            });
+                            const profile = await userRes.json();
+
+                            const res = await fetch('/api/auth/google', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: profile.name || profile.email.split('@')[0],
+                                    email: profile.email,
+                                    avatar_url: profile.picture,
+                                    google_id: profile.sub,
+                                    device_uid: 'SOLEPOWER-01'
+                                })
+                            });
+
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.detail || 'Google authentication failed');
+                            saveSessionAndRedirect(data);
+                        } catch (err) {
+                            showAlert('Google Sign-In failed: ' + err.message, 'error');
+                        }
+                    } else if (tokenResponse && tokenResponse.error) {
+                        showAlert('Google Sign-In cancelled: ' + tokenResponse.error, 'error');
+                    }
+                }
+            });
+
+            // 2. Initialize Google One-Tap
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: async (response) => {
+                    if (response && response.credential) {
+                        showAlert('Google session verified! Entering Telemetry Hub...', 'success');
+                        try {
+                            const base64Url = response.credential.split('.')[1];
+                            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                            const payload = JSON.parse(jsonPayload);
+
+                            const res = await fetch('/api/auth/google', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: payload.name || payload.email.split('@')[0],
+                                    email: payload.email,
+                                    avatar_url: payload.picture,
+                                    google_id: payload.sub,
+                                    device_uid: 'SOLEPOWER-01'
+                                })
+                            });
+
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.detail || 'Google sign-in failed');
+                            saveSessionAndRedirect(data);
+                        } catch (err) {
+                            showAlert('Google One-Tap failed: ' + err.message, 'error');
+                        }
+                    }
+                }
+            });
+
+            // Attempt One-Tap prompt
+            google.accounts.id.prompt();
+        } catch (e) {
+            console.error('Google Auth Init error:', e);
+        }
+    }
+
+    setupRealGoogleAuth();
+
+    if (btnGoogleLogin) {
         btnGoogleLogin.addEventListener('click', () => {
-            googleModal.style.display = 'flex';
-        });
-    }
-
-    if (btnCloseGoogle && googleModal) {
-        btnCloseGoogle.addEventListener('click', () => {
-            googleModal.style.display = 'none';
-        });
-    }
-
-    if (googleModal) {
-        googleModal.addEventListener('click', (e) => {
-            if (e.target === googleModal) {
-                googleModal.style.display = 'none';
-            }
-        });
-    }
-
-    // Google Preset Account Cards
-    document.querySelectorAll('.google-acc-item[data-email]').forEach(item => {
-        item.addEventListener('click', async () => {
-            const name = item.getAttribute('data-name');
-            const email = item.getAttribute('data-email');
-            const avatar_url = item.getAttribute('data-avatar');
-            const gender = item.getAttribute('data-gender') || (name.toLowerCase().includes('gargi') ? 'Female' : 'Male');
-
-            googleModal.style.display = 'none';
-            showAlert(`Connecting to Google account: ${email}...`, 'success');
-
-            try {
-                const res = await fetch('/api/auth/google', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        gender: gender,
-                        avatar_url: avatar_url,
-                        device_uid: 'SOLEPOWER-01'
-                    })
-                });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || 'Google sign-in failed');
-
-                saveSessionAndRedirect(data);
-            } catch (err) {
-                showAlert(err.message, 'error');
-            }
-        });
-    });
-
-    // Custom Google Account Input
-    if (btnCustomGoogle) {
-        btnCustomGoogle.addEventListener('click', async () => {
-            const email = prompt('Enter your Gmail address:', 'kartik.researcher@gmail.com');
-            if (!email || !email.includes('@')) return;
-
-            const nameParts = email.split('@')[0].split('.');
-            const name = nameParts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-            const isFemale = name.toLowerCase().includes('gargi') || name.toLowerCase().includes('ananya');
-            const avatar_url = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}&backgroundColor=${isFemale ? 'f43f5e' : '0ea5e9'}`;
-
-            googleModal.style.display = 'none';
-            showAlert(`Signing in with ${email}...`, 'success');
-
-            try {
-                const res = await fetch('/api/auth/google', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        gender: isFemale ? 'Female' : 'Male',
-                        avatar_url: avatar_url,
-                        device_uid: 'SOLEPOWER-01'
-                    })
-                });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || 'Google authentication failed');
-
-                saveSessionAndRedirect(data);
-            } catch (err) {
-                showAlert(err.message, 'error');
+            if (googleTokenClient) {
+                // Opens the real official Google accounts chooser popup window
+                googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+            } else {
+                showAlert('Connecting to Google services, please retry in 2 seconds...', 'error');
+                setupRealGoogleAuth();
             }
         });
     }
